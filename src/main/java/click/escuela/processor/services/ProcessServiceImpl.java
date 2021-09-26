@@ -1,18 +1,32 @@
 package click.escuela.processor.services;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.sql.Blob;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import click.escuela.processor.api.ProcessApi;
+import click.escuela.processor.api.StudentApiFile;
+import click.escuela.processor.dtos.FileError;
 import click.escuela.processor.dtos.ProcessDTO;
+import click.escuela.processor.dtos.ResponseCreateProcessDTO;
 import click.escuela.processor.enums.FileStatus;
 import click.escuela.processor.enums.ProcessMessage;
 import click.escuela.processor.exception.ProcessException;
@@ -25,29 +39,44 @@ public class ProcessServiceImpl implements ProcessService{
 
 	@Autowired
 	private ProcessRepository processRepository;
+	
+	@Autowired
+	private FileProcessorImpl studentBulkUpload;
 
 	@Override
-	public String save(String name, Integer schoolId, Integer studentCount, MultipartFile file) throws ProcessException {
+	public ResponseCreateProcessDTO saveAndRead(String name, Integer schoolId, MultipartFile file) throws ProcessException {
 		try {
 			
-			ProcessApi processApi = new ProcessApi(name, schoolId, file, studentCount);
+			ProcessApi processApi = new ProcessApi(name, schoolId, file, 0);
 			Process process = Mapper.mapperToProcessApi(processApi);
 			process.setStartDate(LocalDateTime.now());
 			process.setStatus(FileStatus.PENDING);
+			File excel = Mapper.multipartToFile(file, file.getOriginalFilename());
+
+			List<StudentApiFile> students = studentBulkUpload.readFile(excel);
+			process.setStudentCount(students.size());
 			processRepository.save(process);
-			return process.getId().toString();
+
+			ResponseCreateProcessDTO response = new ResponseCreateProcessDTO();
+			response.setStudents(students);
+			response.setProcessId(process.getId().toString());
+			
+			return response;
 		} catch (Exception e) {
 			throw new ProcessException(ProcessMessage.CREATE_ERROR);
 		}
 	}
 	
 	@Override
-	public String update(String status, String processId, MultipartFile file) throws ProcessException {
+	public String update(String processId, List<FileError> errors, String status) throws ProcessException {
 		try {
+			
 			Process process = getById(processId);
+			if(!errors.isEmpty()) {
+				File file = studentBulkUpload.writeErrors(errors, process.getFile(), process.getName());
+				process.setFile(Mapper.fileToBlob(file));
+			}
 			process.setStatus(FileStatus.valueOf(status));
-			Blob blob = Mapper.multipartToBlob(file, process.getName());
-			process.setFile(blob);
 			process.setEndDate(LocalDateTime.now());
 			processRepository.save(process);
 			

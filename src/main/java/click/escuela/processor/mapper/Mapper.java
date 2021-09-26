@@ -3,6 +3,7 @@ package click.escuela.processor.mapper;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ public class Mapper {
 	}
 	public static Process mapperToProcessApi(ProcessApi processApi) throws IOException, SQLException {
 		Process process = modelMapper.map(processApi, Process.class);
-		process.setFile(multipartToBlob(processApi.getFile(), processApi.getName()));
+		process.setFile(multipartToBlob(processApi.getFile(),processApi.getName()));
 		return process;
 	}
 
@@ -51,15 +52,26 @@ public class Mapper {
 	}
 	public static File multipartToFile(MultipartFile multipart, String fileName) throws IOException {
 		String listingFolder = System.getProperty("java.io.tmpdir");
-
+		InputStream inputStream = multipart.getInputStream();
 		File convFile = new File(listingFolder, fileName);
-		multipart.transferTo(convFile);
+		//multipart.transferTo(convFile);
+		FileUtils.copyInputStreamToFile(inputStream, convFile);
 		return convFile;
 	}
 
 	public static Blob multipartToBlob(MultipartFile multipart, String name)
 			throws SQLException, IOException {
 		File file = multipartToFile(multipart, "/".concat(name));
+		byte[] fileContent = null;
+		try {
+			fileContent = FileUtils.readFileToByteArray(file);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return new javax.sql.rowset.serial.SerialBlob(fileContent);
+	}
+	public static Blob fileToBlob(File file)
+			throws SQLException, IOException {
 		byte[] fileContent = null;
 		try {
 			fileContent = FileUtils.readFileToByteArray(file);

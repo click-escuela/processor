@@ -11,12 +11,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import click.escuela.processor.dtos.FileError;
 import click.escuela.processor.dtos.ProcessDTO;
+import click.escuela.processor.dtos.ResponseCreateProcessDTO;
 import click.escuela.processor.exception.ProcessException;
 import click.escuela.processor.services.ProcessService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,26 +38,28 @@ public class ProcessController {
 	
 	@Operation(summary = "Save process", responses = {
 			@ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json")) })
-	@PostMapping(produces = { MediaType.APPLICATION_JSON_VALUE })
-	public ResponseEntity<String> save(@RequestParam("name") String name,
-			@RequestParam("schoolId") Integer schoolId,
-			@RequestParam("studentCount") Integer studentCount,
-			@RequestParam("file") MultipartFile file) throws ProcessException {
-		return ResponseEntity.status(HttpStatus.ACCEPTED).body(processService.save(name, schoolId, studentCount, file));
+	@PostMapping()
+	public ResponseEntity<ResponseCreateProcessDTO> saveAndRead(@RequestPart(value = "file") MultipartFile file,
+			@RequestParam("name") String name,
+			@Parameter(name = "School id", required = true) @PathVariable("schoolId") Integer schoolId) throws ProcessException {
+		return ResponseEntity.status(HttpStatus.ACCEPTED).body(processService.saveAndRead(name, schoolId, file));
 	}
 	
 	@Operation(summary = "Update process", responses = {
 			@ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json")) })
 	@PutMapping(value = "/{processId}", produces = { MediaType.APPLICATION_JSON_VALUE })
-	public ResponseEntity<String> upate(@PathVariable("processId") String processId,
-			@RequestParam("status") String status,
-			@RequestParam("file") MultipartFile file) throws ProcessException {
-		return ResponseEntity.status(HttpStatus.ACCEPTED).body(processService.update(status, processId, file));
+	public ResponseEntity<String> update(
+			@Parameter(name = "School id", required = true) @PathVariable("schoolId") Integer schoolId,
+			@Parameter(name = "Process id", required = true) @PathVariable("processId") String processId,
+			@RequestBody List<FileError> errors,
+			@RequestParam("status") String status
+			) throws ProcessException {
+		return ResponseEntity.status(HttpStatus.ACCEPTED).body(processService.update(processId, errors, status));
 	}
 	@Operation(summary = "Get by schoolId", responses = {
 			@ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProcessDTO.class))) })
 	@GetMapping(value = "", produces = { MediaType.APPLICATION_JSON_VALUE })
-	public ResponseEntity<List<ProcessDTO>> getStudents(@Parameter(name = "School id", required = true) @PathVariable("schoolId") String schoolId) {
+	public ResponseEntity<List<ProcessDTO>> getBySchoolId(@Parameter(name = "School id", required = true) @PathVariable("schoolId") String schoolId) {
 		return ResponseEntity.status(HttpStatus.ACCEPTED).body(processService.getfindBySchoolId(Integer.valueOf(schoolId)));
 	}
 	@Operation(summary = "Get by schoolId", responses = {
