@@ -41,7 +41,7 @@ public class ProcessController {
 	@PostMapping()
 	public ResponseEntity<ResponseCreateProcessDTO> saveAndRead(@RequestPart(value = "file") MultipartFile file,
 			@RequestParam("name") String name,
-			@Parameter(name = "School id", required = true) @PathVariable("schoolId") Integer schoolId) throws ProcessException {
+			@Parameter(name = "School id", required = true) @PathVariable("schoolId") String schoolId) throws ProcessException {
 		return ResponseEntity.status(HttpStatus.ACCEPTED).body(processService.saveAndRead(name, schoolId, file));
 	}
 	
