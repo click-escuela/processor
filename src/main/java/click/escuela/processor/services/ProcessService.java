@@ -13,7 +13,7 @@ import click.escuela.processor.model.Process;
 
 public interface ProcessService {
 
-	public ResponseCreateProcessDTO saveAndRead(String name, Integer schoolId, MultipartFile file) throws ProcessException;
+	public ResponseCreateProcessDTO saveAndRead(String name, String schoolId, MultipartFile file) throws ProcessException;
 	public List<ProcessDTO> getfindBySchoolId(Integer schoolId);
 	public byte[] getFileById(String processId) throws IOException, ProcessException;
 	public String update(String processId, List<FileError> errors, String status) throws ProcessException;

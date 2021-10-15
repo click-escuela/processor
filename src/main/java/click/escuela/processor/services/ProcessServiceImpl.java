@@ -31,14 +31,19 @@ public class ProcessServiceImpl implements ProcessService{
 	private ProcessRepository processRepository;
 	
 	@Autowired
+	private SchoolService schoolService;
+	
+	@Autowired
 	private FileProcessorImpl studentBulkUpload;
 
 	@Override
-	public ResponseCreateProcessDTO saveAndRead(String name, Integer schoolId, MultipartFile file) throws ProcessException {
+	public ResponseCreateProcessDTO saveAndRead(String name, String schoolId, MultipartFile file) throws ProcessException {
 		try {
 			
 			ProcessApi processApi = new ProcessApi(name, schoolId, file, 0);
 			Process process = Mapper.mapperToProcessApi(processApi);
+			
+			process.setSchoolId(schoolService.getSchool(schoolId));
 			process.setStartDate(LocalDateTime.now());
 			process.setStatus(FileStatus.PENDING);
 			File excel = Mapper.multipartToFile(file, file.getOriginalFilename());
