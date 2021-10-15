@@ -49,7 +49,7 @@ public class ProcessController {
 			@ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json")) })
 	@PutMapping(value = "/{processId}", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public ResponseEntity<String> update(
-			@Parameter(name = "School id", required = true) @PathVariable("schoolId") Integer schoolId,
+			@Parameter(name = "School id", required = true) @PathVariable("schoolId") String schoolId,
 			@Parameter(name = "Process id", required = true) @PathVariable("processId") String processId,
 			@RequestBody List<FileError> errors,
 			@RequestParam("status") String status
