@@ -1,7 +1,6 @@
 package click.escuela.processor.model;
 
 import java.sql.Blob;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 

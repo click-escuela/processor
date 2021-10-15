@@ -34,6 +34,7 @@ import click.escuela.processor.repository.ProcessRepository;
 import click.escuela.processor.services.FileProcessorImpl;
 import click.escuela.processor.services.ProcessServiceImpl;
 import click.escuela.processor.model.Process;
+import click.escuela.processor.model.School;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ProcessorServiceTest {
@@ -52,7 +53,7 @@ public class ProcessorServiceTest {
 	private StudentApiFile student;
 	private ProcessApi processApi;
 	private Process process;
-	private Integer schoolId = 1234;
+	private UUID schoolId = UUID.randomUUID();
 	private ProcessServiceImpl processorService = new ProcessServiceImpl();
 	private String name = "Prueba";
 	private UUID id;
@@ -68,10 +69,12 @@ public class ProcessorServiceTest {
 				.build();
 		students.add(student);	
 		id = UUID.randomUUID();
-		processApi = ProcessApi.builder().name(name).file(multipart).schoolId(schoolId).studentCount(0).build();
+		School school = new School();
+		school.setId(schoolId);
+		processApi = ProcessApi.builder().name(name).file(multipart).schoolId(schoolId.toString()).studentCount(0).build();
 		process = Mapper.mapperToProcess(processApi);
 		process.setId(id);
-		process.setSchoolId(schoolId);
+		process.setSchoolId(school);
 		process.setStudentCount(students.size());
 		process.setStartDate(LocalDateTime.now());
 		process.setStatus(FileStatus.PENDING);

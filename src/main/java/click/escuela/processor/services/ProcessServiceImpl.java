@@ -84,7 +84,6 @@ public class ProcessServiceImpl implements ProcessService{
 	@Override
 	public List<ProcessDTO> getfindBySchoolId(Integer schoolId) {
 		List<Process> processes = processRepository.findBySchoolId(schoolId);
-		
 		return Mapper.mapperToProcessDTO(processes);
 	}
 	
