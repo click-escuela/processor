@@ -41,7 +41,7 @@ public class ProcessController {
 	@PostMapping()
 	public ResponseEntity<ResponseCreateProcessDTO> saveAndRead(@RequestPart(value = "file") MultipartFile file,
 			@RequestParam("name") String name,
-			@Parameter(name = "School id", required = true) @PathVariable("schoolId") Integer schoolId) throws ProcessException {
+			@Parameter(name = "School id", required = true) @PathVariable("schoolId") String schoolId) throws ProcessException {
 		return ResponseEntity.status(HttpStatus.ACCEPTED).body(processService.saveAndRead(name, schoolId, file));
 	}
 	
@@ -49,7 +49,7 @@ public class ProcessController {
 			@ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json")) })
 	@PutMapping(value = "/{processId}", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public ResponseEntity<String> update(
-			@Parameter(name = "School id", required = true) @PathVariable("schoolId") Integer schoolId,
+			@Parameter(name = "School id", required = true) @PathVariable("schoolId") String schoolId,
 			@Parameter(name = "Process id", required = true) @PathVariable("processId") String processId,
 			@RequestBody List<FileError> errors,
 			@RequestParam("status") String status

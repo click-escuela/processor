@@ -4,7 +4,8 @@ public enum ProcessMessage {
 
 	CREATE_OK("CREATED_OK","Se creó el proceso correctamente"),
 	CREATE_ERROR("CREATE_ERROR","No se pudo crear el proceso correctamente"),
-	GET_ERROR("GET_ERROR","El proceso que se busca no existe");
+	GET_ERROR("GET_ERROR","El proceso que se busca no existe"),
+	GET_STUDENT("GET_STUDENT","La escuela no existe");
 
 	private String code;
 	private String description;
