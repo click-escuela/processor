@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.sql.Blob;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,8 +90,14 @@ public class ProcessServiceImpl implements ProcessService{
 	} 
 	
 	@Override
-	public byte[] getFileById(String processId) throws IOException {
-		Blob blob = processRepository.findById(UUID.fromString(processId)).get().getFile();
-		return Mapper.blobToFile(blob,"prueba");
+	public byte[] getFileById(String processId) throws IOException, ProcessException {
+		Optional<Process> process = processRepository.findById(UUID.fromString(processId));
+		if (process.isPresent()) {
+			Blob blob = process.get().getFile();
+			return Mapper.blobToFile(blob, "prueba");
+		} else {
+			throw new ProcessException(ProcessMessage.GET_ERROR);
+		}
 	}
+		
 }

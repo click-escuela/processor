@@ -1,13 +1,10 @@
 package click.escuela.processor.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.any;
-import static org.mockito.Mockito.doNothing;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -15,9 +12,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import javax.sql.rowset.serial.SerialBlob;
-
-import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,11 +24,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import click.escuela.processor.api.ProcessApi;
 import click.escuela.processor.api.StudentApiFile;
-import click.escuela.processor.dtos.FileError;
-import click.escuela.processor.dtos.ResponseCreateProcessDTO;
 import click.escuela.processor.enums.EducationLevels;
 import click.escuela.processor.enums.FileStatus;
 import click.escuela.processor.enums.GenderType;
+import click.escuela.processor.enums.ProcessMessage;
+import click.escuela.processor.exception.ProcessException;
 import click.escuela.processor.mapper.Mapper;
 import click.escuela.processor.repository.ProcessRepository;
 import click.escuela.processor.services.FileProcessorImpl;
@@ -52,23 +46,20 @@ public class ProcessorServiceTest {
 
 
 	private List<StudentApiFile> students =  new ArrayList<>();
-	private List<FileError> errors = new ArrayList<>();
+	private List<Process> processes = new ArrayList<>();
 	private MultipartFile multipart ;
 	private File file = new File("prueba.xlsx");	
 	private StudentApiFile student;
-	private SerialBlob blob;
 	private ProcessApi processApi;
 	private Process process;
-	private ResponseCreateProcessDTO response;
 	private Integer schoolId = 1234;
 	private ProcessServiceImpl processorService = new ProcessServiceImpl();
-;
 	private String name = "Prueba";
+	private UUID id;
 	
 	@Before
 	public void setUp() throws Exception  {
-		
-		
+	
 		InputStream fileInp = new FileInputStream(file);
 		multipart = new MockMultipartFile("prueba.xlsx", file.getName(), "application/vnd.ms-excel",fileInp);
 		student =StudentApiFile.builder().name("Tony").surname("Liendro").document("377758269").gender(GenderType.MALE.toString())
@@ -76,23 +67,20 @@ public class ProcessorServiceTest {
 				.email("tony@gmail.com").adressApi(null).parentApi(null).line(1)
 				.build();
 		students.add(student);	
-		
+		id = UUID.randomUUID();
 		processApi = ProcessApi.builder().name(name).file(multipart).schoolId(schoolId).studentCount(0).build();
 		process = Mapper.mapperToProcess(processApi);
-		process.setId(UUID.randomUUID());
+		process.setId(id);
+		process.setSchoolId(schoolId);
 		process.setStudentCount(students.size());
 		process.setStartDate(LocalDateTime.now());
 		process.setStatus(FileStatus.PENDING);
 		process.setFile(Mapper.multipartToBlob(processApi.getFile(),processApi.getName()));
-		/*List<String> errorsList = new ArrayList<>();
-		String error = "Ya existe el estudiante";
-		errorsList.add(error);
-		FileError fileError = FileError.builder().line(student.getLine()).errors(errorsList).build();
-		errors.add(fileError);*/
+		processes.add(process);
+		Optional<Process> optional = Optional.of(process);
 		
-		//when(studentBulkUpload.readFile(file)).thenReturn(students);
-		//when(processRepository.save(process)).thenReturn(process);
-		//when(process.getId().toString()).thenReturn(UUID.randomUUID().toString());
+		Mockito.when(processRepository.findBySchoolId(schoolId)).thenReturn(processes);
+		Mockito.when(processRepository.findById(id)).thenReturn(optional);
 		ReflectionTestUtils.setField(processorService, "processRepository", processRepository);
 		ReflectionTestUtils.setField(processorService, "studentBulkUpload", studentBulkUpload);
 	}
@@ -101,4 +89,46 @@ public class ProcessorServiceTest {
 	public void whenReadFileIsOk() throws Exception {
 		//assertThat(processorService.saveAndRead(name,schoolId, multipart)).isNotNull();
 	}
+	
+	@Test
+	public void whenReadFileIsError() throws ProcessException {
+		assertThatExceptionOfType(ProcessException.class).isThrownBy(() -> {
+			processorService.saveAndRead(name,schoolId, multipart);
+		}).withMessage(ProcessMessage.CREATE_ERROR.getDescription());
+	}
+	
+	@Test
+	public void whenGetBySchoolIdIsOk() {
+		processorService.getfindBySchoolId(schoolId);
+		verify(processRepository).findBySchoolId(schoolId);
+	}
+	
+	@Test
+	public void whenGetByIdIsOk() throws ProcessException {
+		processorService.getById(id.toString());
+		verify(processRepository).findById(id);
+	}
+	
+	@Test
+	public void whenGetByIdIsError() throws ProcessException {
+		id = UUID.randomUUID();
+		assertThatExceptionOfType(ProcessException.class).isThrownBy(() -> {
+			processorService.getById(id.toString());
+		}).withMessage(ProcessMessage.GET_ERROR.getDescription());
+	}
+	
+	@Test
+	public void whenFileByIdIsOk() throws ProcessException, IOException {
+		processorService.getFileById(id.toString());
+		verify(processRepository).findById(id);
+	}
+	
+	@Test
+	public void whenFileByIdIsError() throws ProcessException {
+		id = UUID.randomUUID();
+		assertThatExceptionOfType(ProcessException.class).isThrownBy(() -> {
+			processorService.getFileById(id.toString());
+		}).withMessage(ProcessMessage.GET_ERROR.getDescription());
+	}
+	
 }
