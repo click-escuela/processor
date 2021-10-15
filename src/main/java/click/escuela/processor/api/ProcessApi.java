@@ -35,7 +35,7 @@ public class ProcessApi {
 
 	@NotNull(message = "School Id cannot be null")
 	@JsonProperty(value = "schoolId", required = true)
-	private Integer schoolId;
+	private String schoolId;
 	
 	@NotBlank(message = "File cannot be empty")
 	@JsonProperty(value = "file", required = true)
