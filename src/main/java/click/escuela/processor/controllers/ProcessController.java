@@ -65,7 +65,7 @@ public class ProcessController {
 	@Operation(summary = "Get by schoolId", responses = {
 			@ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProcessDTO.class))) })
 	@GetMapping(value = "/{processId}", produces = { MediaType.APPLICATION_JSON_VALUE })
-	public ResponseEntity<byte[]> getFileById(@PathVariable("processId") String processId) throws IOException {
+	public ResponseEntity<byte[]> getFileById(@PathVariable("processId") String processId) throws IOException, ProcessException {
 		return ResponseEntity.status(HttpStatus.ACCEPTED).body(processService.getFileById(processId));
 	}
 
