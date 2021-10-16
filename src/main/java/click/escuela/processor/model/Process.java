@@ -1,7 +1,6 @@
 package click.escuela.processor.model;
 
 import java.sql.Blob;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -49,8 +48,8 @@ public class Process {
 	private LocalDateTime endDate;
 
 	@ManyToOne(cascade={CascadeType.ALL})
-    @JoinColumn(name="school_id")
-	private School schoolId;
+    @JoinColumn(name = "school_id", referencedColumnName="id_school")
+	private School school;
 
 	@Column(name = "file", nullable = false)
 	private Blob file;
