@@ -5,4 +5,5 @@ sudo rm -rf /home/ec2-user/server/processor/processor-service.pid
 sudo rm -rf /home/ec2-user/server/processor/logs
 sudo rm -rf /home/ec2-user/server/processor/server_stop.sh
 sudo rm -rf /home/ec2-user/server/processor/fix_provileges.sh
+sudo rm -rf /home/ec2-user/server/processor/server_prestart.sh
 sudo rm -rf /home/ec2-user/server/processor/server_clear.sh
