@@ -109,8 +109,8 @@ public class ProcessServiceImpl implements ProcessService{
 	}
 	
 	//At 00:00:00am, on the 1st day, every month
-	//@Scheduled(cron="0 0 0 1 * ? *")
-	@Scheduled(cron="0 2 * ? * * *")
+	@Scheduled(cron="0 0 0 1 * ?", zone = "America/Argentina/Buenos_Aires")
+	//@Scheduled(cron="0 */2 * ? * *")
 	public void createBills() {
 		Date date = new Date();
 		LocalDate localDate = date.toInstant().atZone(ZoneId.of("America/Argentina/Buenos_Aires")).toLocalDate();
