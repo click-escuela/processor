@@ -1,23 +1,13 @@
 package click.escuela.processor.services;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.sql.Blob;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,6 +23,7 @@ import click.escuela.processor.exception.ProcessException;
 import click.escuela.processor.mapper.Mapper;
 import click.escuela.processor.repository.ProcessRepository;
 import click.escuela.processor.model.Process;
+import click.escuela.processor.model.School;
 
 @Service
 public class ProcessServiceImpl implements ProcessService{
@@ -41,14 +32,18 @@ public class ProcessServiceImpl implements ProcessService{
 	private ProcessRepository processRepository;
 	
 	@Autowired
+	private SchoolService schoolService;
+	
+	@Autowired
 	private FileProcessorImpl studentBulkUpload;
 
 	@Override
-	public ResponseCreateProcessDTO saveAndRead(String name, Integer schoolId, MultipartFile file) throws ProcessException {
+	public ResponseCreateProcessDTO saveAndRead(String name, String schoolId, MultipartFile file) throws ProcessException {
+		School school = schoolService.getSchool(schoolId);
 		try {
-			
 			ProcessApi processApi = new ProcessApi(name, schoolId, file, 0);
 			Process process = Mapper.mapperToProcessApi(processApi);
+			process.setSchool(school);
 			process.setStartDate(LocalDateTime.now());
 			process.setStatus(FileStatus.PENDING);
 			File excel = Mapper.multipartToFile(file, file.getOriginalFilename());
@@ -87,9 +82,8 @@ public class ProcessServiceImpl implements ProcessService{
 	}
 	
 	@Override
-	public List<ProcessDTO> getfindBySchoolId(Integer schoolId) {
-		List<Process> processes = processRepository.findBySchoolId(schoolId);
-		
+	public List<ProcessDTO> getfindBySchoolId(String schoolId) {
+		List<Process> processes = processRepository.findBySchoolId(UUID.fromString(schoolId));
 		return Mapper.mapperToProcessDTO(processes);
 	}
 	
@@ -99,9 +93,13 @@ public class ProcessServiceImpl implements ProcessService{
 				.orElseThrow(() -> new ProcessException(ProcessMessage.GET_ERROR));
 	} 
 	
-	@Override
-	public byte[] getFileById(String processId) throws IOException {
-		Blob blob = processRepository.findById(UUID.fromString(processId)).get().getFile();
-		return Mapper.blobToFile(blob,"prueba");
+	public byte[] getFileById(String processId) throws IOException, ProcessException {
+		Optional<Process> process = processRepository.findById(UUID.fromString(processId));
+		if (process.isPresent()) {
+			Blob blob = process.get().getFile();
+			return Mapper.blobToFile(blob, "prueba");
+		} else {
+			throw new ProcessException(ProcessMessage.GET_ERROR);
+		}
 	}
 }

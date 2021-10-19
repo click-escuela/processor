@@ -1,7 +1,5 @@
 package click.escuela.processor.api;
 
-import java.sql.Blob;
-
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -35,7 +33,7 @@ public class ProcessApi {
 
 	@NotNull(message = "School Id cannot be null")
 	@JsonProperty(value = "schoolId", required = true)
-	private Integer schoolId;
+	private String schoolId;
 	
 	@NotBlank(message = "File cannot be empty")
 	@JsonProperty(value = "file", required = true)

@@ -11,5 +11,5 @@ import click.escuela.processor.model.Process;
 @Repository
 public interface ProcessRepository extends JpaRepository<Process, UUID>{
 
-	public List<Process> findBySchoolId(Integer school);
+	public List<Process> findBySchoolId(UUID school);
 }
