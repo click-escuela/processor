@@ -1,7 +1,6 @@
 package click.escuela.processor.services;
 
 import java.io.File;
-
 import java.io.IOException;
 import java.sql.Blob;
 import java.time.LocalDate;
@@ -11,6 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -56,7 +56,7 @@ public class ProcessServiceImpl implements ProcessService{
 			List<StudentApiFile> students = studentBulkUpload.readFile(excel);
 			process.setStudentCount(students.size());
 			processRepository.save(process);
-
+			
 			ResponseCreateProcessDTO response = new ResponseCreateProcessDTO();
 			response.setStudents(students);
 			response.setProcessId(process.getId().toString());
@@ -98,6 +98,7 @@ public class ProcessServiceImpl implements ProcessService{
 				.orElseThrow(() -> new ProcessException(ProcessMessage.GET_ERROR));
 	} 
 	
+	@Override
 	public byte[] getFileById(String processId) throws IOException, ProcessException {
 		Optional<Process> process = processRepository.findById(UUID.fromString(processId));
 		if (process.isPresent()) {
@@ -107,7 +108,6 @@ public class ProcessServiceImpl implements ProcessService{
 			throw new ProcessException(ProcessMessage.GET_ERROR);
 		}
 	}
-	
 	//At 00:00:00am, on the 1st day, every month
 	@Scheduled(cron="0 0 0 1 * ?", zone = "America/Argentina/Buenos_Aires")
 	//@Scheduled(cron="0 */2 * ? * *")
