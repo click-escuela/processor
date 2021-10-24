@@ -1,10 +1,10 @@
 package click.escuela.processor.api;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-
-import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -20,26 +20,27 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @JsonInclude(Include.NON_EMPTY)
-@Schema(description = "Course Api")
+@Schema(description = "Bill Api")
+@AllArgsConstructor
 @SuperBuilder
-public class ProcessApi {
+public class BillApi {
+	@NotNull(message = "Month cannot be empty")
+	@Min(value = 1, message = "Month should not be less than 1")
+    @Max(value = 12, message = "Month should not be greater than 12")
+	@JsonProperty(value = "month", required = true)
+	private Integer month;
 	
-	@NotBlank(message = "Name cannot be empty")
-	@Size(max = 50, message = "Name must be 50 characters")
-	@JsonProperty(value = "name", required = true)
-	private String name;
+	@NotNull(message = "Year cannot be empty")
+	@JsonProperty(value = "year", required = true)
+	private Integer year;
 
-	@NotNull(message = "School Id cannot be null")
-	@JsonProperty(value = "schoolId", required = true)
-	private String schoolId;
+	@NotNull(message = "Amount cannot be empty")
+	@JsonProperty(value = "amount", required = true)
+	private Double amount;
 	
 	@NotBlank(message = "File cannot be empty")
+	@Size(max = 10, message = "File must be 50 characters")
 	@JsonProperty(value = "file", required = true)
-	private MultipartFile file;
-
-	@NotNull(message = "StudentCount cannot be null")
-	@JsonProperty(value = "studentCount", required = true)
-	private Integer studentCount;
+	private String file;
 }
