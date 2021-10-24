@@ -33,7 +33,9 @@ import click.escuela.processor.mapper.Mapper;
 import click.escuela.processor.repository.ProcessRepository;
 import click.escuela.processor.services.FileProcessorImpl;
 import click.escuela.processor.services.ProcessServiceImpl;
+import click.escuela.processor.services.SchoolService;
 import click.escuela.processor.model.Process;
+import click.escuela.processor.model.School;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ProcessorServiceTest {
@@ -43,7 +45,9 @@ public class ProcessorServiceTest {
 	
 	@Mock
 	private FileProcessorImpl studentBulkUpload;
-
+	
+	@Mock
+	private SchoolService schoolService;
 
 	private List<StudentApiFile> students =  new ArrayList<>();
 	private List<Process> processes = new ArrayList<>();
@@ -52,7 +56,7 @@ public class ProcessorServiceTest {
 	private StudentApiFile student;
 	private ProcessApi processApi;
 	private Process process;
-	private Integer schoolId = 1234;
+	private String schoolId = "8ea485d3-5e06-41ac-99f4-04420068387e";
 	private ProcessServiceImpl processorService = new ProcessServiceImpl();
 	private String name = "Prueba";
 	private UUID id;
@@ -71,7 +75,7 @@ public class ProcessorServiceTest {
 		processApi = ProcessApi.builder().name(name).file(multipart).schoolId(schoolId).studentCount(0).build();
 		process = Mapper.mapperToProcess(processApi);
 		process.setId(id);
-		process.setSchoolId(schoolId);
+		process.setSchool(School.builder().id(UUID.fromString(schoolId)).build());
 		process.setStudentCount(students.size());
 		process.setStartDate(LocalDateTime.now());
 		process.setStatus(FileStatus.PENDING);
@@ -79,10 +83,13 @@ public class ProcessorServiceTest {
 		processes.add(process);
 		Optional<Process> optional = Optional.of(process);
 		
-		Mockito.when(processRepository.findBySchoolId(schoolId)).thenReturn(processes);
+		Mockito.when(processRepository.findBySchoolId(UUID.fromString(schoolId))).thenReturn(processes);
 		Mockito.when(processRepository.findById(id)).thenReturn(optional);
+		Mockito.when(schoolService.getSchool(Mockito.anyString())).thenReturn(new School());
 		ReflectionTestUtils.setField(processorService, "processRepository", processRepository);
 		ReflectionTestUtils.setField(processorService, "studentBulkUpload", studentBulkUpload);
+		ReflectionTestUtils.setField(processorService, "schoolService", schoolService);
+
 	}
 	
 	@Test
@@ -100,7 +107,7 @@ public class ProcessorServiceTest {
 	@Test
 	public void whenGetBySchoolIdIsOk() {
 		processorService.getfindBySchoolId(schoolId);
-		verify(processRepository).findBySchoolId(schoolId);
+		verify(processRepository).findBySchoolId(UUID.fromString(schoolId));
 	}
 	
 	@Test
