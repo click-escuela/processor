@@ -13,22 +13,22 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 
 @RunWith(MockitoJUnitRunner.class)
-public class ProcessorServiceTest {
+public class ScheduledServiceTest {
 
 	@Mock
 	private SchoolServiceImpl schoolService;
 	
-	private ProcessServiceImpl processServiceImpl = new ProcessServiceImpl();
+	private ScheduledServiceImpl scheduledService = new ScheduledServiceImpl();
 	
 	@Before
 	public void setUp() {	
 		doNothing().when(schoolService).automaticCreation(Mockito.anyString(), Mockito.any());
-		ReflectionTestUtils.setField(processServiceImpl, "schoolService", schoolService);
+		ReflectionTestUtils.setField(scheduledService, "schoolService", schoolService);
 	}
 
 	@Test
 	public void whenCreateBills() {
-		processServiceImpl.createBills();
+		scheduledService.createBills();
 		verify(schoolService).automaticCreation(Mockito.anyString(), Mockito.any());
 	}
 
