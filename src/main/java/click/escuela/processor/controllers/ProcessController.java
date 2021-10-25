@@ -21,10 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import click.escuela.processor.dtos.FileError;
 import click.escuela.processor.dtos.ProcessDTO;
 import click.escuela.processor.dtos.ResponseCreateProcessDTO;
-import click.escuela.processor.enums.EmailMessage;
-import click.escuela.processor.exception.EmailException;
 import click.escuela.processor.exception.ProcessException;
-import click.escuela.processor.services.EmailService;
 import click.escuela.processor.services.ProcessService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -38,9 +35,6 @@ public class ProcessController {
 
 	@Autowired
 	private ProcessService processService;
-	
-	@Autowired
-	private EmailService emailService;
 	
 	@Operation(summary = "Save process", responses = {
 			@ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json")) })
@@ -75,14 +69,4 @@ public class ProcessController {
 		return ResponseEntity.status(HttpStatus.ACCEPTED).body(processService.getFileById(processId));
 	}
 	
-	@Operation(summary = "Send Email", responses = {
-			@ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json")) })
-	@PostMapping(value = "/sendEmail")
-	public ResponseEntity<EmailMessage> sendEmail(@RequestParam(value = "password") String password,
-			@RequestParam("userName") String userName, @RequestParam("email") String email,
-			@Parameter(name = "School id", required = true) @PathVariable("schoolId") String schoolId) throws ProcessException, EmailException {
-		emailService.create(schoolId, password, userName, email);
-		return ResponseEntity.status(HttpStatus.ACCEPTED).body(EmailMessage.SEND_OK);
-	}
-
 }
