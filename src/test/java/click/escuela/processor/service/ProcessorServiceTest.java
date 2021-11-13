@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import click.escuela.processor.api.ProcessApi;
 import click.escuela.processor.api.StudentApiFile;
+import click.escuela.processor.dtos.FileError;
 import click.escuela.processor.enums.EducationLevels;
 import click.escuela.processor.enums.FileStatus;
 import click.escuela.processor.enums.GenderType;
@@ -33,6 +35,7 @@ import click.escuela.processor.mapper.Mapper;
 import click.escuela.processor.repository.ProcessRepository;
 import click.escuela.processor.services.FileProcessorImpl;
 import click.escuela.processor.services.ProcessServiceImpl;
+import click.escuela.processor.services.SchoolService;
 import click.escuela.processor.model.Process;
 import click.escuela.processor.model.School;
 
@@ -44,7 +47,9 @@ public class ProcessorServiceTest {
 	
 	@Mock
 	private FileProcessorImpl studentBulkUpload;
-
+	
+	@Mock
+	private SchoolService schoolService;
 
 	private List<StudentApiFile> students =  new ArrayList<>();
 	private List<Process> processes = new ArrayList<>();
@@ -53,7 +58,7 @@ public class ProcessorServiceTest {
 	private StudentApiFile student;
 	private ProcessApi processApi;
 	private Process process;
-	private UUID schoolId = UUID.randomUUID();
+	private String schoolId = "8ea485d3-5e06-41ac-99f4-04420068387e";
 	private ProcessServiceImpl processorService = new ProcessServiceImpl();
 	private String name = "Prueba";
 	private UUID id;
@@ -69,12 +74,10 @@ public class ProcessorServiceTest {
 				.build();
 		students.add(student);	
 		id = UUID.randomUUID();
-		School school = new School();
-		school.setId(schoolId);
-		processApi = ProcessApi.builder().name(name).file(multipart).schoolId(schoolId.toString()).studentCount(0).build();
+		processApi = ProcessApi.builder().name(name).file(multipart).schoolId(schoolId).studentCount(0).build();
 		process = Mapper.mapperToProcess(processApi);
 		process.setId(id);
-		process.setSchoolId(school);
+		process.setSchool(School.builder().id(UUID.fromString(schoolId)).build());
 		process.setStudentCount(students.size());
 		process.setStartDate(LocalDateTime.now());
 		process.setStatus(FileStatus.PENDING);
@@ -82,28 +85,47 @@ public class ProcessorServiceTest {
 		processes.add(process);
 		Optional<Process> optional = Optional.of(process);
 		
-		Mockito.when(processRepository.findBySchoolId(schoolId)).thenReturn(processes);
+		Mockito.when(processRepository.findBySchoolId(UUID.fromString(schoolId))).thenReturn(processes);
 		Mockito.when(processRepository.findById(id)).thenReturn(optional);
+		Mockito.when(processRepository.save(Mockito.any())).thenReturn(process);
+		Mockito.when(schoolService.getSchool(Mockito.anyString())).thenReturn(new School());
 		ReflectionTestUtils.setField(processorService, "processRepository", processRepository);
 		ReflectionTestUtils.setField(processorService, "studentBulkUpload", studentBulkUpload);
+		ReflectionTestUtils.setField(processorService, "schoolService", schoolService);
+
 	}
 	
 	@Test
-	public void whenReadFileIsOk() throws Exception {
-		//assertThat(processorService.saveAndRead(name,schoolId, multipart)).isNotNull();
+	public void whenReadFileIsOk() throws ProcessException  {
+		processorService.saveAndRead(name,schoolId, multipart);
+		verify(processRepository).save(Mockito.any());
 	}
 	
 	@Test
 	public void whenReadFileIsError() throws ProcessException {
 		assertThatExceptionOfType(ProcessException.class).isThrownBy(() -> {
-			processorService.saveAndRead(name,schoolId, multipart);
+			processorService.saveAndRead(name,schoolId, null);
+		}).withMessage(ProcessMessage.CREATE_ERROR.getDescription());
+	}
+	
+	@Test
+	public void whenUpdateIsOk() throws ProcessException, SQLException, IOException  {
+		List<FileError> errors = new ArrayList<>();
+		processorService.update(id.toString(), errors , FileStatus.PENDING.toString());
+		verify(processRepository).save(Mockito.any());		
+	}
+	
+	@Test
+	public void whenUpdateIsError() throws ProcessException {
+		assertThatExceptionOfType(ProcessException.class).isThrownBy(() -> {
+			processorService.update(id.toString(), null , FileStatus.PENDING.toString());		
 		}).withMessage(ProcessMessage.CREATE_ERROR.getDescription());
 	}
 	
 	@Test
 	public void whenGetBySchoolIdIsOk() {
 		processorService.getfindBySchoolId(schoolId);
-		verify(processRepository).findBySchoolId(schoolId);
+		verify(processRepository).findBySchoolId(UUID.fromString(schoolId));
 	}
 	
 	@Test

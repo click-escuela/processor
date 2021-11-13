@@ -54,7 +54,6 @@ public class Mapper {
 		String listingFolder = System.getProperty("java.io.tmpdir");
 		InputStream inputStream = multipart.getInputStream();
 		File convFile = new File(listingFolder, fileName);
-		//multipart.transferTo(convFile);
 		FileUtils.copyInputStreamToFile(inputStream, convFile);
 		return convFile;
 	}
@@ -81,16 +80,13 @@ public class Mapper {
 		return new javax.sql.rowset.serial.SerialBlob(fileContent);
 	}
 	public static byte[] blobToFile(Blob blob, String name) throws IOException {
-		FileOutputStream fos = null;
 		File file = new File(name.concat(".xlsx"));
 		byte[] blobAsBytes = null;
-		try {
+		try(FileOutputStream fos =  new FileOutputStream(file)) {
 			int blobLength = (int) blob.length();
 			blobAsBytes = blob.getBytes(1, blobLength);
-			fos = new FileOutputStream(file);
 			fos.write(blobAsBytes);
 		} catch (Exception e) {
-			
 			e.printStackTrace();
 		}
 		return blobAsBytes;

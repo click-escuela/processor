@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Blob;
 import java.time.LocalDateTime;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,6 +24,7 @@ import click.escuela.processor.exception.ProcessException;
 import click.escuela.processor.mapper.Mapper;
 import click.escuela.processor.repository.ProcessRepository;
 import click.escuela.processor.model.Process;
+import click.escuela.processor.model.School;
 
 @Service
 public class ProcessServiceImpl implements ProcessService{
@@ -38,23 +40,22 @@ public class ProcessServiceImpl implements ProcessService{
 
 	@Override
 	public ResponseCreateProcessDTO saveAndRead(String name, String schoolId, MultipartFile file) throws ProcessException {
+		School school = schoolService.getSchool(schoolId);
 		try {
-			
 			ProcessApi processApi = new ProcessApi(name, schoolId, file, 0);
 			Process process = Mapper.mapperToProcessApi(processApi);
-			
-			process.setSchoolId(schoolService.getSchool(schoolId));
+			process.setSchool(school);
 			process.setStartDate(LocalDateTime.now());
 			process.setStatus(FileStatus.PENDING);
 			File excel = Mapper.multipartToFile(file, file.getOriginalFilename());
 
 			List<StudentApiFile> students = studentBulkUpload.readFile(excel);
 			process.setStudentCount(students.size());
-			processRepository.save(process);
+			Process processToSave = processRepository.save(process);
 			
 			ResponseCreateProcessDTO response = new ResponseCreateProcessDTO();
 			response.setStudents(students);
-			response.setProcessId(process.getId().toString());
+			response.setProcessId(processToSave.getId().toString());
 			
 			return response;
 		} catch (Exception e) {
@@ -82,8 +83,8 @@ public class ProcessServiceImpl implements ProcessService{
 	}
 	
 	@Override
-	public List<ProcessDTO> getfindBySchoolId(Integer schoolId) {
-		List<Process> processes = processRepository.findBySchoolId(schoolId);
+	public List<ProcessDTO> getfindBySchoolId(String schoolId) {
+		List<Process> processes = processRepository.findBySchoolId(UUID.fromString(schoolId));
 		return Mapper.mapperToProcessDTO(processes);
 	}
 	
@@ -103,5 +104,5 @@ public class ProcessServiceImpl implements ProcessService{
 			throw new ProcessException(ProcessMessage.GET_ERROR);
 		}
 	}
-		
+
 }
