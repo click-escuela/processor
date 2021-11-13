@@ -111,17 +111,15 @@ public class ProcessServiceImpl implements ProcessService{
 
 	//At 00:00:00am, on the 1st day, every month
 	@Scheduled(cron="0 0 0 1 * ?", zone = "America/Argentina/Buenos_Aires")
-	//@Scheduled(cron="0 */2 * ? * *")
 	public void createBills() {
 		Date date = new Date();
+		BillApi billApi = new BillApi();
 		LocalDate localDate = date.toInstant().atZone(ZoneId.of("America/Argentina/Buenos_Aires")).toLocalDate();
 		Integer month = localDate.getMonthValue();
-		Integer year = localDate.getYear();
-		BillApi billApi = new BillApi();
 		billApi.setAmount(1000.0);
 		billApi.setFile("Cuota "+month.toString()+" de");
 		billApi.setMonth(month);
-		billApi.setYear(year);
+		billApi.setYear(localDate.getYear());
 		schoolService.automaticCreation(UUID.randomUUID().toString(), billApi);
 	}
 	
