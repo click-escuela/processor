@@ -68,5 +68,5 @@ public class ProcessController {
 	public ResponseEntity<byte[]> getFileById(@PathVariable("processId") String processId) throws IOException, ProcessException {
 		return ResponseEntity.status(HttpStatus.ACCEPTED).body(processService.getFileById(processId));
 	}
-
+	
 }
