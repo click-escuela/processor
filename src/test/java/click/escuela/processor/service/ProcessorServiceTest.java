@@ -156,4 +156,10 @@ public class ProcessorServiceTest {
 		}).withMessage(ProcessMessage.GET_ERROR.getDescription());
 	}
 	
+	@Test
+	public void createBills() {
+		processorService.createBills();
+		verify(schoolService).automaticCreation(Mockito.anyString(), Mockito.any());
+	}
+	
 }
