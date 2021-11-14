@@ -7,7 +7,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.time.LocalDateTime;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -123,6 +122,5 @@ public class ProcessServiceImpl implements ProcessService{
 		billApi.setYear(localDate.getYear());
 		schoolService.automaticCreation(UUID.randomUUID().toString(), billApi);
 	}
-
 	
 }

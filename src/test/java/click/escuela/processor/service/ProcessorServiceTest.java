@@ -27,7 +27,6 @@ import org.springframework.web.multipart.MultipartFile;
 import click.escuela.processor.api.ProcessApi;
 import click.escuela.processor.api.StudentApiFile;
 import click.escuela.processor.dtos.FileError;
-
 import click.escuela.processor.enums.EducationLevels;
 import click.escuela.processor.enums.FileStatus;
 import click.escuela.processor.enums.GenderType;
@@ -90,7 +89,6 @@ public class ProcessorServiceTest {
 		Mockito.when(processRepository.findBySchoolId(UUID.fromString(schoolId))).thenReturn(processes);
 		Mockito.when(processRepository.findById(id)).thenReturn(optional);
 		Mockito.when(processRepository.save(Mockito.any())).thenReturn(process);
-
 		Mockito.when(schoolService.getSchool(Mockito.anyString())).thenReturn(new School());
 		ReflectionTestUtils.setField(processorService, "processRepository", processRepository);
 		ReflectionTestUtils.setField(processorService, "studentBulkUpload", studentBulkUpload);
@@ -102,7 +100,6 @@ public class ProcessorServiceTest {
 	public void whenReadFileIsOk() throws ProcessException  {
 		processorService.saveAndRead(name,schoolId, multipart);
 		verify(processRepository).save(Mockito.any());
-
 	}
 	
 	@Test
@@ -123,7 +120,6 @@ public class ProcessorServiceTest {
 	public void whenUpdateIsError() throws ProcessException {
 		assertThatExceptionOfType(ProcessException.class).isThrownBy(() -> {
 			processorService.update(id.toString(), null , FileStatus.PENDING.toString());		
-
 		}).withMessage(ProcessMessage.CREATE_ERROR.getDescription());
 	}
 	
@@ -166,5 +162,5 @@ public class ProcessorServiceTest {
 		processorService.createBills();
 		verify(schoolService).automaticCreation(Mockito.anyString(), Mockito.any());
 	}
-
+	
 }
